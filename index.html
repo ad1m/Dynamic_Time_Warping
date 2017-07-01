@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>DTW</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#157878">
+    <link rel="stylesheet" href="css/normalize.css">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="css/cayman.css">
+    <script type="text/javascript" async
+  src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-MML-AM_CHTML">
+    </script>
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+      tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}
+      });
+    </script>
+  </head>
+  <body>
+
+    <style>
+    #right_div {
+    float: right;
+    border: 0px solid black;
+    text-align: center;
+}
+</style>
+
+
+    <section class="page-header">
+      <br>
+      <br>
+      <h1 class="project-name">Dynamic Time Warping</h1>
+      <!--<h2 class="project-tagline">Part 1: Motivation, History, Theory, & Application</h2>-->
+      <h3 class="project-tagline">By: Adam Lieberman</h3>
+      <br>
+      <br>
+      <!--<a href="#" class="btn">View on GitHub</a>
+      <a href="#" class="btn">Download .zip</a>
+      <a href="#" class="btn">Download .tar.gz</a> -->
+    </section>
+
+    <section class="main-content">
+    <h1>Definition</h1>
+    <p>Dynamic Time Warping (DTW) is an algorithm for measuring similarity between two temporal sequences which may vary in speed. For instance, this could be a sequential list of numbers, a sequence of footsteps, a sequence of points creating a curve, etc. DTW can be used to find the optimal match between two sequences, which depend on some sequential restriction. Essentially, we can use DTW to determine if two sequences match or not irrespective of their difference in time series.</p> 
+
+    <h1>Application</h1>
+    <p>Suppose we have two similar curves: $C_1$ and $C_2$. Both curves have a height of roughly 25 and a curve length of 8. Let's construct two curves with these properties and visualize them below:</p>
+    <!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #0000aa">import</span> <span style="color: #00aaaa; text-decoration: underline">matplotlib.pyplot</span> <span style="color: #0000aa">as</span> <span style="color: #00aaaa; text-decoration: underline">plt</span>
+
+<span style="color: #aaaaaa; font-style: italic">#Create two similar curves</span>
+C_1 = [<span style="color: #009999">0</span>,<span style="color: #009999">0</span>,<span style="color: #009999">0</span>,<span style="color: #009999">3</span>,<span style="color: #009999">6</span>,<span style="color: #009999">13</span>,<span style="color: #009999">25</span>,<span style="color: #009999">22</span>,<span style="color: #009999">7</span>,<span style="color: #009999">2</span>,<span style="color: #009999">1</span>,<span style="color: #009999">0</span>,<span style="color: #009999">0</span>,<span style="color: #009999">0</span>,<span style="color: #009999">0</span>,<span style="color: #009999">0</span>,<span style="color: #009999">0</span>,<span style="color: #009999">0</span>,<span style="color: #009999">0</span>,<span style="color: #009999">0</span>,<span style="color: #009999">0</span>,<span style="color: #009999">0</span>,<span style="color: #009999">0</span>,<span style="color: #009999">0</span>,<span style="color: #009999">0</span>,<span style="color: #009999">0</span>,<span style="color: #009999">0</span>,<span style="color: #009999">0</span>,<span style="color: #009999">0</span>,<span style="color: #009999">0</span>]
+C_2 = [<span style="color: #009999">0</span>,<span style="color: #009999">0</span>,<span style="color: #009999">0</span>,<span style="color: #009999">0</span>,<span style="color: #009999">0</span>,<span style="color: #009999">0</span>,<span style="color: #009999">0</span>,<span style="color: #009999">0</span>,<span style="color: #009999">0</span>,<span style="color: #009999">0</span>,<span style="color: #009999">0</span>,<span style="color: #009999">0</span>,<span style="color: #009999">0</span>,<span style="color: #009999">0</span>,<span style="color: #009999">0</span>,<span style="color: #009999">0</span>,<span style="color: #009999">0</span>,<span style="color: #009999">4</span>,<span style="color: #009999">5</span>,<span style="color: #009999">12</span>,<span style="color: #009999">24</span>,<span style="color: #009999">23</span>,<span style="color: #009999">8</span>,<span style="color: #009999">3</span>,<span style="color: #009999">1</span>,<span style="color: #009999">0</span>,<span style="color: #009999">0</span>,<span style="color: #009999">0</span>,<span style="color: #009999">0</span>,<span style="color: #009999">0</span>]
+
+<span style="color: #aaaaaa; font-style: italic">#Plot similar curves</span>
+plt.plot(C_1,label=<span style="color: #aa5500">&quot;Curve 1&quot;</span>)
+plt.plot(C_2,label=<span style="color: #aa5500">&quot;Curve 2&quot;</span>)
+plt.title(<span style="color: #aa5500">&quot;Similar Curves&quot;</span>)
+plt.legend(bbox_to_anchor=(<span style="color: #009999">1.25</span>, .<span style="color: #009999">55</span>))
+plt.show()
+
+>>> 
+<img src="images/similar_curves.png"/>
+</pre></div>
+
+<p>Above, we see that the curves look nearly identical, but are shifted in time. We can apply a gaussian filter to both curves to see a slighly smoother version of the curves as follows:</p>
+
+<!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #0000aa">from</span> <span style="color: #00aaaa; text-decoration: underline">scipy.ndimage.filters</span> <span style="color: #0000aa">import</span> gaussian_filter
+
+<span style="color: #aaaaaa; font-style: italic">#Creating the smooth curves from the gaussian filter</span>
+smoothed_C1 = gaussian_filter(C_1,<span style="color: #009999">2</span>)
+smoothed_C2 = gaussian_filter(C_2,<span style="color: #009999">2</span>)
+
+<span style="color: #aaaaaa; font-style: italic">#Plotting the smoothed curves</span>
+plt.plot(smoothed_C1,label=<span style="color: #aa5500">&quot;Smoothed Curve 1&quot;</span>)
+plt.plot(smoothed_C2,label=<span style="color: #aa5500">&quot;Smoothed Curve 2&quot;</span>)
+plt.title(<span style="color: #aa5500">&quot;Smoothed Similar Curves&quot;</span>)
+plt.legend(bbox_to_anchor=(<span style="color: #009999">1.45</span>, .<span style="color: #009999">55</span>))
+plt.show()
+
+>>> 
+<img src="images/smoothed_curves.png"/>
+</pre></div>
+
+<p>Above, we see that the curves are almost identical. Now, a commonly used distance metric to compare verctors with numerical data is the euclidean distance which is defined below:</p>
+
+$$d(p,q) = \sqrt{\sum_{i=1}^n\left(q_i-p_i\right)}$$
+<p>where $p,q$ are our two vectors, each with $n$ elements. Let us compute the euclidean distance between $C_1$ and $C_2$ and the euclidean distance between the gaussian smoothed curves as follows:</p>
+
+<!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #0000aa">from</span> <span style="color: #00aaaa; text-decoration: underline">scipy.spatial</span> <span style="color: #0000aa">import</span> distance
+
+<span style="color: #aaaaaa; font-style: italic">#Euclidean distance of original curves</span>
+dst = distance.euclidean(C_1,C_2)
+
+<span style="color: #aaaaaa; font-style: italic">#Euclidean distance of smoothed curves</span>
+smoothed_dst = distance.euclidean(smoothed_C1,smoothed_C2)
+<span style="color: #0000aa">print</span>(dst)
+<span style="color: #0000aa">print</span>(smoothed_dst)
+
+>>>
+52.3545604508
+36.4554522671
+</pre></div>
+
+<p>We see that there is a big distance between the two curves using Euclidean distance. However, in actuality the curves are very similar, there is just a space of time separating the two curves. Let us create a function below to calcualte the dynamic time warp between two vectors and then observe the distance calculation it provides us for $C_1$, $C_2$ along with the smoothed versions of the two curves.</p>
+
+<!-- HTML generated using hilite.me --><div style="background: #ffffff; overflow:auto;width:auto;border:solid gray;border-width:.1em .1em .1em .8em;padding:.2em .6em;"><pre style="margin: 0; line-height: 125%"><span style="color: #0000aa">import</span> <span style="color: #00aaaa; text-decoration: underline">math</span>
+
+<span style="color: #0000aa">def</span> <span style="color: #00aa00">dynamicTimeWarp</span>(seqA, seqB, d = <span style="color: #0000aa">lambda</span> x,y: <span style="color: #00aaaa">abs</span>(x-y)):
+
+    numRows, numCols = <span style="color: #00aaaa">len</span>(seqA), <span style="color: #00aaaa">len</span>(seqB)
+    cost = [[<span style="color: #009999">0</span> <span style="color: #0000aa">for</span> _ <span style="color: #0000aa">in</span> <span style="color: #00aaaa">range</span>(numCols)] <span style="color: #0000aa">for</span> _ <span style="color: #0000aa">in</span> <span style="color: #00aaaa">range</span>(numRows)]
+ 
+    cost[<span style="color: #009999">0</span>][<span style="color: #009999">0</span>] = d(seqA[<span style="color: #009999">0</span>], seqB[<span style="color: #009999">0</span>])
+    <span style="color: #0000aa">for</span> i <span style="color: #0000aa">in</span> <span style="color: #00aaaa">range</span>(<span style="color: #009999">1</span>, numRows):
+        cost[i][<span style="color: #009999">0</span>] = cost[i-<span style="color: #009999">1</span>][<span style="color: #009999">0</span>] + d(seqA[i], seqB[<span style="color: #009999">0</span>])
+ 
+    <span style="color: #0000aa">for</span> j <span style="color: #0000aa">in</span> <span style="color: #00aaaa">range</span>(<span style="color: #009999">1</span>, numCols):
+        cost[<span style="color: #009999">0</span>][j] = cost[<span style="color: #009999">0</span>][j-<span style="color: #009999">1</span>] + d(seqA[<span style="color: #009999">0</span>], seqB[j])
+ 
+    <span style="color: #0000aa">for</span> i <span style="color: #0000aa">in</span> <span style="color: #00aaaa">range</span>(<span style="color: #009999">1</span>, numRows):
+        <span style="color: #0000aa">for</span> j <span style="color: #0000aa">in</span> <span style="color: #00aaaa">range</span>(<span style="color: #009999">1</span>, numCols):
+            choices = cost[i-<span style="color: #009999">1</span>][j], cost[i][j-<span style="color: #009999">1</span>], cost[i-<span style="color: #009999">1</span>][j-<span style="color: #009999">1</span>]
+            cost[i][j] = <span style="color: #00aaaa">min</span>(choices) + d(seqA[i], seqB[j])
+    <span style="color: #0000aa">return</span> cost[-<span style="color: #009999">1</span>][-<span style="color: #009999">1</span>]
+
+DTW = dynamicTimeWarp(C_1,C_2)
+smoothed_DTW = dynamicTimeWarp(smoothed_C1,smoothed_C2)
+<span style="color: #0000aa">print</span>(DTW)
+<span style="color: #0000aa">print</span>(smoothed_DTW)
+
+>>>
+7
+1
+</pre></div>
+
+<p>We now see that the distance between our curves is much closer than that of the euclidean distance. Dynamic Time Warping is great for observing the similarities with respect to time series based data
+
+
+
+
+
+<h1>Code:</h1>
+<p>All code found in this tutorial can be found <a href="https://github.com/ad1m/Dynamic_Time_Warping">here</a>.</p>
+
+
+
+    </section>
+
+  </body>
+</html>
